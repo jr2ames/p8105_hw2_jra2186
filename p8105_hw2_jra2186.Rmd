@@ -28,14 +28,42 @@ mr_trash_wheel <- read_excel(
   skip = 1, #Skip image
   range = cell_cols("A:N")) %>% #Omit extra columns
     janitor::clean_names() %>% #Make variable names nicer
-    filter(!is.na(dumpster)) %>% #Filter out monthly summary rows
+    filter(!is.na(date)) %>% #Filter out monthly summary rows, grand total
     mutate(sports_balls = round(sports_balls)) #Round sports balls to the nearest integer
 
-head(mr_trash_wheel)
+skimr::skim(mr_trash_wheel)
 ```
 
-Read and clean precipitation data for 2018 and 2019. For each, omit rows without precipitation data and add a variable for year. Next, combine precipitation datasets and convert month to a character variable (the variable month.name is built into R and should be useful).
+Read and clean precipitation data for 2018 and 2019. For each, omit rows without precipitation data and add a variable for year. Next, combine precipitation datasets and convert month to a character variable (the variable `month.name` is built into R and should be useful).
+
+```{r}
+precip_2018 <- read_excel(
+  path = "data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx",
+  sheet = "2018 Precipitation",
+  range = "A2:B14") %>%
+    mutate(year = factor(2018))
+
+precip_2019 <- read_excel(
+  path = "data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx",
+  sheet = "2019 Precipitation",
+  range = "A2:B14") %>%
+    mutate(year = factor(2019))
+
+#Combine, name months
+precip_18_19 <- full_join(precip_2018, precip_2019) %>%
+  janitor::clean_names() %>%
+  mutate(month = month.name[month])
+
+head(precip_18_19)
+tail(precip_18_19)
+```
 
 Write a paragraph about these data; you are encouraged to use inline R. Be sure to note the number of observations in both resulting datasets, and give examples of key variables. For available data, what was the total precipitation in 2018? What was the median number of sports balls in a dumpster in 2019?
 
+a) The Mr. Trash Wheel dataset contains data from `r nrow(mr_trash_wheel)` dumpsters collected from May 2014 to January 2021, with details including the weight (in tons) and volume (in yards$^3$) of trash collected, and counts of the plastic bottles, polystyrene containers, cigarette butts, and several other items. Additionally, the dataset includes the number of sports balls found in each dumpster, and the number of homes in Baltimore powered by incinerating the trash in each dumpster. In 2019, the median number of sports balls in a dumpster was `r mr_trash_wheel %>% filter(year == 2019) %>% pull(sports_balls) %>% median`.
+
+b) The precipitation dataset we created here contains the monthly total precipitation (presumably, in inches, in Baltimore) for each month in 2018 and 2019. The total precipitation in 2018 across all 12 months was `r precip_18_19 %>% filter(year == 2018) %>% pull(total) %>% sum()` inches, according to this data.
+
 ## Problem 2
+
+
