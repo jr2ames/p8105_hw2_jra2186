@@ -142,18 +142,39 @@ tail(baby_names) #All caps bad
 baby_names <- baby_names %>%
   janitor::clean_names() %>%
   mutate(childs_first_name = stringr::str_to_title(childs_first_name)) %>% #Adjust case
-  mutate(ethnicity = unlist(strsplit(ethnicity, split = " "))[1]) %>% #Simple coding
+  mutate(ethnicity = substr(ethnicity, 1, regexpr("[^[:alpha:]]", ethnicity)-1)) %>%
+  mutate(ethnicity = if_else(ethnicity == "", true = "HISPANIC", false = ethnicity)) %>%
   distinct() #Remove duplicate rows
 ```
 
 Produce a well-structured, reader-friendly table showing the rank in popularity of the name “Olivia” as a female baby name over time; this should have rows for ethnicities and columns for year. Produce a similar table showing the most popular name among male children over time.
 
 ```{r}
+olivia <- baby_names %>%
+  filter(childs_first_name == "Olivia") %>%
+  mutate(count = NULL, gender = NULL, childs_first_name = NULL) %>%
+  arrange(year_of_birth) %>%
+  pivot_wider(names_from = year_of_birth, values_from = rank)
+knitr::kable(olivia, caption = "Popularity rank of 'Olivia' as a female baby name in NYC by ethnicity from 2011 to 2016")
 
+pop_boy <- baby_names %>%
+  filter(gender == "MALE" & rank == 1) %>%
+  mutate(gender = NULL, count = NULL, rank = NULL) %>%
+  arrange(year_of_birth) %>%
+  pivot_wider(names_from = year_of_birth, values_from = childs_first_name)
+knitr::kable(pop_boy, caption = "Most popular male baby name in NYC by ethnicity from 2011 to 2016")
 ```
 
 Finally, for male, white non-hispanic children born in 2016, produce a scatter plot showing the number of children with a name (y axis) against the rank in popularity of that name (x axis).
 
-```{r}
-
+```{r }
+#I expect this will be a power law distribution
+baby_names %>%
+  filter(ethnicity == "WHITE", year_of_birth == 2016, gender == "MALE") %>%
+  ggplot(aes(x = rank, y = count)) +
+  theme_bw() +
+  geom_point() +
+  labs(title = "Popularity of white, male names as a function of popularity rank",
+       x = "Popularity rank of name",
+       y = "Number of white non-Hispanic male children with name born in 2016")
 ```
