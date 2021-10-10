@@ -126,4 +126,34 @@ Note: we could have used a date variable as a key instead of creating year and m
 
 ## Problem 3
 
+This problem uses data from NYC Open data on the popularity of baby names, and can be downloaded [here](https://www.p8105.com/data/Popular_Baby_Names.csv).
 
+Load and tidy the data. Note that, although these data may seem fairly well formatted initially, the names of a categorical predictor and the case structure of string variables changed over time; you’ll need to address this in your data cleaning. Also, some rows seem duplicated, and these will need to be removed (hint: google something like “dplyr remove duplicate rows” to get started).
+
+```{r}
+baby_names <- read_csv(
+  "data/Popular_Baby_Names.csv")
+
+#These data seem fine until you look closely
+with(baby_names, unique(Ethnicity))
+
+tail(baby_names) #All caps bad
+
+baby_names <- baby_names %>%
+  janitor::clean_names() %>%
+  mutate(childs_first_name = stringr::str_to_title(childs_first_name)) %>% #Adjust case
+  mutate(ethnicity = unlist(strsplit(ethnicity, split = " "))[1]) %>% #Simple coding
+  distinct() #Remove duplicate rows
+```
+
+Produce a well-structured, reader-friendly table showing the rank in popularity of the name “Olivia” as a female baby name over time; this should have rows for ethnicities and columns for year. Produce a similar table showing the most popular name among male children over time.
+
+```{r}
+
+```
+
+Finally, for male, white non-hispanic children born in 2016, produce a scatter plot showing the number of children with a name (y axis) against the rank in popularity of that name (x axis).
+
+```{r}
+
+```
